@@ -9,7 +9,8 @@ This repository is designed for software engineers, students, and developers pre
 🧠 Patterns & Tricks – Common problem-solving techniques
 📝 Mistakes & Learnings – Key pitfalls to avoid in interviews
 
-🗂️ Repository Structure
+# 🗂️ Repository Structure
+```
 interview-prep/
 │
 ├── topics/
@@ -29,10 +30,10 @@ interview-prep/
 │   └── dynamic-programming/
 │
 └── resources/
+```
 
-
-🧑‍💻 Topics Covered
-📊 Data Structures
+# 🧑‍💻 Topics Covered
+## 📊 Data Structures
 Arrays
 Linked Lists
 Stacks & Queues

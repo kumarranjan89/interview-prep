@@ -1,0 +1,32 @@
+## Introduction to Networking
+
+### Networking & Communication
+- Networking is the foundation os System Design
+
+##### Why Networking Matters in System Design?
+- Every system relies on data exchange between components
+- Networking enables scalability, reliability and performance
+- Key Areas where networking plays a crucial role:
+    - Communication: Ensuring smooth data transfer between clients, servers and databases.
+    - Load Balancing: Distributing traffic efficiently to prevent overload on a single server
+    - Security: Protecting data from unauthorized access and cyber threats
+    - Efficiency: Optimizing network performance to reduce latency and improve user experience.
+
+#### How Networking Impacts Large-Scale Systems
+- Helps handle millions of users concurrenly
+- Enables fast and efficient data exchange
+- Reduces latency & Improves system resilience
+- Essential for cloud computing & Distributed systems
+
+#### Agenda: Key Networking Concepts in System Design
+- Understanding IP Addresses
+- How DNS Works
+- Client-Server Model Explained
+- Forward Proxy vs Reverse Proxy
+- Introduction to Load Balancing
+- What is an API Gateway?
+- Content Delivery Networks (SDN) in System Design
+
+### IP Addresses in System Design
+
+#### Introduction to IP Addresses

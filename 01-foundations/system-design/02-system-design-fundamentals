@@ -30,3 +30,287 @@
 ### IP Addresses in System Design
 
 #### Introduction to IP Addresses
+
+#### What is IPv4?
+- IPv4 (Internet Protocol Version 4) is the most widely used addressing system
+- 32-bit address format (eg: 192.168.1.1)
+- Total addresses available: ~4.3 billion
+- Uses: Traditional networking, web servers and most current internet devices
+- Challenges: Limited IPs, Fragmentation and Security concerns.
+
+#### What is IPv6?
+- IPv6 (Internet Protocol Version 6) is the next generation IP Standard
+- 128 bit address format - 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+- Total addresses available: 340 undecillion (virtually unlimited)
+- Designed for: IoT, mobile networks and future scalability.
+- Key Benefits: Larger address space, better security and improving efficiency.
+
+#### Private vs Public IPs
+- Public IPs:
+    - Assigned by ISPs (Internet Service Providers)
+    - Used to communicate over the internet
+    - Unique worldwide
+    - Example: 192.203.23.45
+
+- Private IPs:
+    - Used within local networks (LANs, enterprises, homes)
+    - Cannot be accessed directly from the internet
+    - Examples:
+        - 10.0.0.0 - 10.255.255.255
+        - 172.16.0.0 - 172.31.255.255
+        - 192.168.0.0 - 192.168.255.255
+
+    ![IPv6 Structure](image.png)
+
+#### Why do we need Private IPs?
+- Conserves public IP addresses (IPv4 Limiitaion)
+- Enhances security (Private IPs are not routable over the internet)
+- Enables network Address Translation (NAT) to allow multiple devices to share a single public IP
+- Common in corporate networks, data centers and cloud environments.
+
+#### The Role of IPs in System Design
+- Scalability: Helps in designing distributed, multi region and cloud based architecture.
+- Security: Enables firewall rules, VPNs and private networking
+- Load Balancing: Uses IP-based traffic disctribution (eg: Round Robin DNS, Anycast IPs)
+- Cloud Networking: Public, Private and hybrid cloud IP management (AWS, GCP, Azure)
+- Microservices & Containers: Use internal private IPs for communication.
+
+##### Common System Design Interview Question on IPs
+- How do IPv4 and IPv6 addresses differ?
+- Why do we need private IPs in system design?
+- How does NAT help inaddressing the IPv4 shortage?
+- Explain how a load balancer distributes traffic using IPs
+- How does DNS resolve IP addresses in large-scale system?
+
+
+### How DNS works?
+
+#### Introduction to DNS
+
+##### What is DNS?
+- The phonebook of the internet
+- Translates human-readable domain names (rg: google.com) into IP addresses
+
+##### Why is DNS important?
+- Enables accessibility of websites.
+
+    ![DNS Lookup](./assets/image-1.png)
+
+##### Types of DNS Servers
+- Root Name Servers: Top level servers handling .com, .org etc
+- TLD Name Servers: Specific to domains like .com, .net
+- Authoritative Name Servers: Store domain specif records [A records, C Records, MX Records]
+- Recursive Resolvers: Handle queries on behalf of users, contacting multiple DNS servers if Necessary
+
+    ![Types of DNS](./assets/image-2.png)
+
+##### DNS Caching and Performance Optimization
+- Why caching matters?
+    - Redues latency
+    - Reduces loan on DNS Servers
+
+- Where caching occurs?
+    - Browser cache (Stores previous lookups)
+    - OS cache (/etc/hosts, Windows DNS cache)
+    - Recusrive Resolver cache (ISP Level)
+
+- Time-To-Live (TTL): Determines how long a cached record is valid.
+
+##### The Domain Name Resolution Process
+Step by step breakdown of how DNS resolves a domain name:
+1. User types a domain name in the browser
+2. Browser cache check (If the IP is already known)
+3. Operating System (OS) Cache check 
+4. Query to local DNS resolver (ISP or configured DNS server)
+5. If not found, query goes to root DNS servers. 
+6. TLD (top-level domain) server provide the authoritative DNS server details.  
+7. Authoritative DNS server returns the IP address. 
+8. Response is cast and returned to the user. 
+
+    ![alt text](./assets/image-3.png)
+
+##### Importance of DNS in Large Scale Systems 
+- Ensuring high availability 
+    - Load balancing using DNS. 
+    - Anycast for faster global resolution. 
+
+- DNS Failover Strategies
+    - Primary and Secondary DNS Servers 
+
+- Content Delivery Networks (CDNs) and DNS 
+    - How DNS directs users to the nearest CDN node for fast loading
+
+- DNS Security Risks 
+    - DNS poisoning, cache poisoning, and DDoS attacks. 
+
+    ![alt text](./assets/image-4.png)
+
+##### Interval questions related to DNS. 
+1. Explain the DNS resolution process step by step. 
+2. What is the difference between authoritative and recursive DNS servers? 
+3. How does DNS caching improve performance? Where does it occur? 
+4. What is the TTL in DNS and why is it important? 
+5. How does TNS-based load balancing work in large-scale systems? 
+6. What are common DNS-related security threats and how can they be mitigated? 
+
+### Client Server Model Explained
+- A computing model where clients request services and servers provide them. 
+- Foundation of modern web, database, and application architectures. 
+- Why is it important? 
+    - Enables efficient resource management. 
+    - Used in web browsing, email, APIs, databases, and cloud services 
+- Real-worlding samples 
+    - Browsing a website. (Browser=client, web server=server) 
+    - Sending an email (Email app=Client, Mail server = Server)
+
+    ![alt text](./assets/image-5.png)
+
+##### Key components of the client-server model
+- Client
+    - The user-facing application that sends a request 
+    - Examples: web browser, mobile app, API consumer 
+
+- Server
+     - A system that processes requests and returns responses. 
+     - Examples: Web server, ThetaBase server, Mail server
+
+- Network
+    - The medium that facilitates communication between client and server 
+    - Examples: Internet, LAN, Wi-Fi, 5G
+
+##### How Clients and Servers Communicate
+- Basic Steps
+    - Client sends a request (HTTP, SQL query, etc.) 
+    - Request is transmitted over the Network 
+    - Server receives and processes the request. 
+    - Server sends a response. 
+    - Client receives and processes the response. 
+
+- Types of Communication
+    - Request-response model (eg: HTTP, REST APIs)
+    - Persistent Connections (eg: Web Sockets, FTP Sessions) 
+
+
+    ![alt text](./assets/image-6.png)
+
+##### The Request-Response Cycle (HTTP example)
+1. Browser request https://example.com 
+2. DNS resolves domain to IP address. 
+3. Browser sends an HTTP GET request to the web server.
+4. Web server process request, which is HTML, queries the database if needed. 
+5. Server sends an HTTP response with a status code 200 OK and the web page content. 
+6. Browser renders the web page. 
+
+    ![alt text](./assets/image-7.png)
+
+##### Synchronous vs Asynchronous Communication
+- Synchronous Communication
+    - Client waits for a response before proceeding. 
+    - Example A: User submits a form and waits for a confirmation message. 
+    - Used in REST APIs, traditional web apps 
+
+- Asynchronous Communication
+    - Client does not wait for a response and can perform other tasks. 
+    - Ex. WebSocket for real-time chat, AJAX for background request 
+    - Use messaging app, live updates, IOT application. 
+
+    ![alt text](./assets/image-8.png)
+
+##### Stateless vs Statefull Servers
+- Stateless Servers
+    - No Memory of past interactions: Each request is independent
+    - Example: REST APIs, HTTP Servers 
+    - Benefits: Scalability, easy caching, load balancing
+
+- Statefull Servers
+    - Maintain session information across requests
+    - Example: WebSockets, multiplayer games, banking applications
+    - Benefits: Personalization, seamless user experiences
+
+    ![alt text](./assets/image-9.png)
+
+
+##### Real world Examples
+- Web applications 
+    - Browsing a website (client = browser = server = web server) 
+- APIs and microservices 
+    - Mobile Apps Calling Back-end APIs (Rest. Graph QL) 
+- Databases 
+    - A client querying a database (SQL Client -> Database Server) 
+- Messaging systems 
+    - WhatsApp, Slack is using web socket for real-time communication. 
+
+
+##### Interview questions on the client-server model. 
+- Fundamental questions.
+    - What is the client-server model and how does it work? 
+    - How does a client communicate with a server? 
+    - What are some real-world examples of clients of our model? 
+    - What is the difference between a client and a server?   
+- Request response cycle questions. 
+    - Explain the HTTP Request-Response Cycle with an example. 
+    - What are the key differences between synchronous and asynchronous communication? 
+    - How does a browser load a web page? Walk me through the steps.  
+- Architecture and Design Questions 
+    - What is the difference between stateless and stateful servers? 
+    - How does caching improve performance in a client-server model? 
+    - How do node balancers work in a coin server architecture?   
+- Advanced questions. 
+    - What are some security challenges in the client-server model? 
+    - How does WebSocket differ from traditional request-response communication? 
+    - What are some limitations of the principle model? How can they be addressed? 
+    - How would you design a scalable client-server system for a high-traffic application? 
+
+### Forward Proxy vs Reverse Proxy
+
+##### What is a Proxy?
+- A proxy is an intermediary server between a client and another server. 
+- Proxies help with security, caching, traffic control, and anonymity. 
+- Two main types: forward proxies & reverse proxy
+
+    ![alt text](./assets/image-10.png)
+
+##### What is a forward proxy? 
+- Sits between a client and the internet (used by the clients)
+- Clients connect to the forward proxy instead of directly accessing the website. 
+- Can filter content provide anonymity and cache requests? 
+- Common Use Cases 
+    - Privacy and Anonymity: Hide User IP 
+    - Content filtering (Restricts certain websites) 
+    - Bypass geo restrictions: (Access region blocked content)
+    - Caching: (reduce redundant requests, speed up browsing) 
+    
+    ![alt text](./assets/image-11.png)
+
+##### What is a reverse proxy? 
+- Sets between users and backend server (used by servers)
+- Clients don't directly communicate with the backend server. Requests go through the request reverse proxy. 
+- Used for load balancing, caching, security, and SSL termination 
+- Common Use Cases 
+    - Load balancing: distribute traffic to multiple servers 
+    - Security and DDoS protection: Hide backend server blocked attacks 
+    - SSL Termination:  Offload SSL Processing to Proxy 
+    - Caching and compression: Reduce load on Tekken server. 
+
+    ![alt text](./assets/image-12.png)
+
+##### Interview questions on forward proxy versus reverse proxy? 
+- Basic Concepts 
+    - What is a proxy server and why is it used? 
+    - Explain the key differences between forward proxy and reverse proxy. 
+- Technical Deep Dive
+    - How does the Fout Proxy improve security and privacy? 
+    - How does the reverse proxy help in load balancing and caching? 
+    - What are some real-world example of forward and reverse proxies. 
+- Implementation and use cases 
+    - When should you use a forward proxy versus a reverse proxy in system architecture? 
+    - What are some common tools and technologies used for each type of proxy? 
+    - How does the reverse proxy protect the backend server from DDoS attacks? 
+- Advanced Topics 
+    - How does SSL termination work in a reverse proxy? 
+    - What are the advantages of using Cloudflare, Nginx, or HAProxy as a reverse proxy? 
+    - How does a transparent proxy differ from a forward or reverse proxy? 
+
+### Introduction to Load Balancing
+
+

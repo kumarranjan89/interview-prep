@@ -313,4 +313,14 @@ Step by step breakdown of how DNS resolves a domain name:
 
 ### Introduction to Load Balancing
 
+##### While load balancing is needed 
+- High availability: ensure system uptime even under high traffic. 
+- Traffic distribution: Spreads the request email across servers. 
+- Prevents overload: Avoids overburdening a single server. 
+- Improves performance: Reduces latency and enhances response times. 
+- Handles failure gracefully: Redirects traffic in case of server failure. 
+- Supports Scalability: helps skill system efficiently. 
+- Example: A high-traffic e-commerce site uses load balancing to handle Peak hour requests. 
+
+    ![alt text](./assets/image-13.png)
 

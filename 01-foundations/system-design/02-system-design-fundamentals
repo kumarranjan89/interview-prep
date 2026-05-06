@@ -324,3 +324,25 @@ Step by step breakdown of how DNS resolves a domain name:
 
     ![alt text](./assets/image-13.png)
 
+##### Types of Load Balancers
+- Based in Layer
+    - Layer 4 (Transport Layer): Operates at TCP/UDP level, distributing requests based on network-level data 
+    - Layer 7 (Application Layer): Operate at HTTP/HTTPS level, making routing decisions based on request content. 
+
+    ![alt text](./assets/image-14.png)
+
+- Based on Deployment
+    - Hard Load Balancers: Specialized devices, for example F5, Citrix, Netscaler 
+    - Software Load Balancers: Nginx, HAProxy, Envoy 
+    - Cloud-based Load Balancers: AWS Elastic Load Balancer, Google Cloud Load Balancing 
+
+##### Load Balancing Strategies 
+- Static Load Balancing 
+    - Round robin: Distributes requests sequentially to each server 
+    - List Connections: Directs traffic to the server with the fewest connections 
+    - IP hashing: Route request based on client IP.
+      
+- Dynamic Load Balancing 
+    - List response time: Send a request to the server with the fastest response. 
+    - Adaptive Load Balancing: Uses real-time monitoring to make decisions  
+    - Weighted Load Balancing: Assigns different weight to servers based on capacity  

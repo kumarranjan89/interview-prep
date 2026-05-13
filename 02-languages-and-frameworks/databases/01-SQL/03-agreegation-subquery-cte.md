@@ -810,7 +810,7 @@ Step 3: List employees in those depts
 
 ## What's Next?
 
-- `04-window-functions.md` — RANK, ROW_NUMBER, LAG, LEAD
+- [04-window-functions.md](04-window-functions.md) — RANK, ROW_NUMBER, LAG, LEAD
 - Window functions extend aggregation — no GROUP BY needed
 - Most asked topic in Staff/Senior interviews
 

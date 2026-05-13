@@ -678,7 +678,7 @@ Hint: WHERE dept = 'HR' OR dept = 'Sales'
 ## What's Next?
 
 After mastering SELECT and WHERE:
-- Move to 02-join.md (most important next step)
+- Move to [02-join.md](02-join.md) (most important next step)
 - Then 03-insert-update-delete.md
 - Then 04-transactions.md
 

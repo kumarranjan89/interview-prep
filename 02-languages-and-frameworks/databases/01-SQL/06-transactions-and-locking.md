@@ -915,7 +915,7 @@ Result: Rahul's update committed, Priya's not
 # What's Next?
 
 After mastering transactions:
-- Move to 07-data-modeling.md
+- Move to [07-data-modeling.md](07-data-modeling.md)
 - Then 08-indexes.md
 - Then 09-optimization.md
 

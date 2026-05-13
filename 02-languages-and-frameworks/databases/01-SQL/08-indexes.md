@@ -740,7 +740,7 @@ CREATE INDEX idx_user_status ON transactions(user_id, status);
 ## What's Next?
 
 After understanding indexes:
-- Move to 09-optimization.md (query tuning)
+- Move to [09-optimization.md](09-optimization.md) (query tuning)
 - Then practice with real databases
 - Use EXPLAIN on your own queries
 

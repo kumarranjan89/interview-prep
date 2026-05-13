@@ -939,8 +939,8 @@ Repeat for every new system.
 # What's Next?
 
 After data modeling:
-- Move to 08-indexes.md (speed optimization)
-- Then 09-optimization.md (query tuning)
+- Move to [08-indexes.md](08-indexes.md) (speed optimization)
+- Then [09-optimization.md](09-optimization.md) (query tuning)
 
 But practice these designs first. Design 3 systems:
 1. School

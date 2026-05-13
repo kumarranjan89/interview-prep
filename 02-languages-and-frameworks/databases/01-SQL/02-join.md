@@ -603,7 +603,7 @@ Use: RIGHT JOIN + WHERE emp_id IS NULL
 ## What's Next?
 
 After you understand JOINs:
-- Move to 03-agreegation-subquery-cte.md
+- Move to [03-agreegation-subquery-cte.md](03-agreegation-subquery-cte.md)
 - Practice with all 4 practice databases
 - You'll see JOINs in every real query
 

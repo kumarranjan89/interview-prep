@@ -254,6 +254,9 @@ tech-interview-prep/
 
 Interview Preparation, Data Structures, Algorithms, Coding Interview Questions, System Design Interview, LeetCode Solutions, DSA Notes, Software Engineering Interview Prep
 
+# Tools for Practice
+- https://sqliteonline.com/
+
 # 🤝 Contributions
 
 Contributions are welcome!

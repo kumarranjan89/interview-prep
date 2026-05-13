@@ -749,9 +749,9 @@ Label them: 'Low', 'Mid', 'High'
 
 ## What's Next?
 
-- `05-insert-update-delete.md` — writing data, not just reading
-- `06-transactions-and-locking.md` — data safety and concurrency
-- `07-indexing-and-optimization.md` — make queries fast
+- [05-insert-update-delete.md](05-insert-update-delete.md) — writing data, not just reading
+- [06-transactions-and-locking.md](06-transactions-and-locking.md) — data safety and concurrency
+- [07-indexing-and-optimization.md](07-indexing-and-optimization.md) — make queries fast
 
 **Practice tip: The top 3 interview patterns are:**
 1. Top N per group (ROW_NUMBER)

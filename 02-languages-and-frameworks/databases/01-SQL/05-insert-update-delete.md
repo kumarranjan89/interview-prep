@@ -786,8 +786,8 @@ Rule 7: Never do INSERT/UPDATE/DELETE in production without testing
 # What's Next?
 
 After INSERT/UPDATE/DELETE:
-- Move to 04-transactions.md (deeper understanding)
-- Then 05-data-modeling.md
+- Move to 06-transactions-and-locking.md (deeper understanding)
+- Then 07-data-modeling.md
 - Then practice with real databases
 
 But practice these 8 exercises first — they're critical.

@@ -915,9 +915,9 @@ Result: Rahul's update committed, Priya's not
 # What's Next?
 
 After mastering transactions:
-- Move to 05-data-modeling.md
-- Then 06-indexes.md
-- Then 07-optimization.md
+- Move to 07-data-modeling.md
+- Then 08-indexes.md
+- Then 09-optimization.md
 
 Transactions are foundation for reliable databases.
 

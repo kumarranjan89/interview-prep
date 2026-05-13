@@ -855,11 +855,13 @@ You've completed the SQL Learning Path!
 ```
 ✅ 01-basics.md
 ✅ 02-join.md
-✅ 03-insert-update-delete.md
-✅ 04-transactions.md
-✅ 05-data-modeling.md
-✅ 06-indexes.md
-✅ 07-optimization.md  ← YOU ARE HERE
+✅ 03-agreegation-subquery-cte.md
+✅ 04-window-functions.md
+✅ 05-insert-update-delete.md
+✅ 06-transactions-and-locking.md
+✅ 07-data-modeling.md
+✅ 08-indexes.md
+✅ 09-optimization.md  ← YOU ARE HERE
 ```
 
 **Next step: Practice Databases**

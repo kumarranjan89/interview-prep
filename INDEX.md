@@ -78,6 +78,53 @@
 
 ---
 
+## 🌐 02b. Advanced Frontend Engineering (Staff/Principal · 15+ YOE)
+ 
+> Depth track for senior frontend interviews. This is where **browser internals, security, micro-frontends, performance, and architecture** live — the topics that differentiate a 15-YOE engineer.
+ 
+### 🔬 Browser Internals
+- [Rendering Pipeline](./02b-advanced-frontend/browser-internals/rendering-pipeline.md) — DOM/CSSOM → layout → paint → composite
+- [Event Loop](./02b-advanced-frontend/browser-internals/event-loop.md) — microtasks/macrotasks, call stack
+- [Critical Rendering Path](./02b-advanced-frontend/browser-internals/critical-rendering-path.md) — reflow/repaint
+- [Memory Management](./02b-advanced-frontend/browser-internals/memory-management.md) — leaks, GC
+- [Networking](./02b-advanced-frontend/browser-internals/networking.md) — HTTP/2-3, caching, CDN, preload/prefetch
+ 
+### ⚡ Web Performance
+- [Core Web Vitals](./02b-advanced-frontend/performance/core-web-vitals.md) — LCP, INP, CLS
+- [Bundle Optimization](./02b-advanced-frontend/performance/bundle-optimization.md) — code splitting, tree shaking
+- [Lazy Loading & Virtualization](./02b-advanced-frontend/performance/lazy-loading.md)
+- [Profiling & Measurement](./02b-advanced-frontend/performance/profiling.md)
+ 
+### 🔒 Frontend Security
+- [XSS / CSRF / CORS](./02b-advanced-frontend/security/xss-csrf-cors.md)
+- [CSP, SRI, Secure Cookies](./02b-advanced-frontend/security/csp-sri-cookies.md)
+- [Auth: OAuth2, OIDC, JWT, Sessions](./02b-advanced-frontend/security/auth.md)
+- [Supply-Chain & Dependency Security](./02b-advanced-frontend/security/supply-chain.md)
+ 
+### 🧱 Micro-Frontends (MFE)
+- [Module Federation](./02b-advanced-frontend/mfe/module-federation.md)
+- [Composition & Routing](./02b-advanced-frontend/mfe/composition-routing.md)
+- [Shared State & Dependency Sharing](./02b-advanced-frontend/mfe/shared-state.md)
+- [Versioning, Deployment & Governance](./02b-advanced-frontend/mfe/governance.md)
+ 
+### 🏛️ Frontend Architecture
+- [State Management at Scale](./02b-advanced-frontend/architecture/state-management.md)
+- [Design Systems & Component Libraries](./02b-advanced-frontend/architecture/design-systems.md)
+- [Monorepo (Nx, Turborepo)](./02b-advanced-frontend/architecture/monorepo.md)
+- [Rendering Strategies](./02b-advanced-frontend/architecture/rendering-strategies.md) — CSR/SSR/SSG/ISR/streaming
+ 
+### 🛠️ Build & Tooling
+- [Bundler Internals](./02b-advanced-frontend/tooling/bundler-internals.md) — Webpack/Vite/esbuild
+- [CI/CD for Frontend](./02b-advanced-frontend/tooling/ci-cd.md)
+- [Observability](./02b-advanced-frontend/tooling/observability.md) — RUM, error tracking, Sentry
+ 
+### 🎨 Frontend System Design
+- [Frontend System Design Framework](./02b-advanced-frontend/system-design/framework.md)
+- [Case Studies](./02b-advanced-frontend/system-design/case-studies.md) — design a feed, editor, dashboard
+- [Interview Questions](./02b-advanced-frontend/system-design/interview-questions.md)
+
+---
+
 ## 🚀 03. System Design Deep Dive (Real Problems)
 
 * [URL Shortener](./03-system-design-deep-dive/problems/url-shortener/)

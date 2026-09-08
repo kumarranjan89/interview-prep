@@ -2,19 +2,19 @@
 
 Location: `01-foundations/system-design/docker/docker-compose-for-local-dev.md`
 
-`multi-stage-builds.md` production image ke liye tha. Ye file local development ke liye hai — jahan goal speed aur convenience hai, size optimization nahi.
+`multi-stage-builds.md` was about the production image. This file is about local development — where the goal is speed and convenience, not size optimization.
 
 ---
 
 ## 1. Mental Model
 
-Docker Compose ek tool hai **multiple containers ko ek saath define aur run karne ke liye**, ek single YAML file (`docker-compose.yml`) ke through.
+Docker Compose is a tool for **defining and running multiple containers together**, through a single YAML file (`docker-compose.yml`).
 
-**Core idea**: Real app mein sirf ek container nahi hota — frontend, backend, database, cache (Redis), sab alag services hain jo ek saath chalne chahiye. Compose inhe ek command (`docker-compose up`) se orchestrate karta hai.
+**Core idea**: A real app is never just one container — frontend, backend, database, cache (Redis) are all separate services that need to run together. Compose orchestrates all of them with one command (`docker-compose up`).
 
-- Har entry ek **service** hai (jo internally ek container ban jaata hai).
-- Services apne **service-name se ek doosre ko resolve** kar sakte hain — built-in DNS ki wajah se (`http://backend:5000`, `localhost` nahi).
-- Ye "poore stack ko local machine par ek command se khada karna" problem solve karta hai — naya developer onboard hone par `docker-compose up` chalaye, sab kaam karna shuru.
+- Each entry is a **service** (which internally becomes a container).
+- Services can resolve each other **by service name** — thanks to built-in DNS (`http://backend:5000`, not `localhost`).
+- This solves the problem of "spin up the whole stack locally with one command" — a new developer runs `docker-compose up` and everything just works.
 
 ---
 
@@ -63,45 +63,45 @@ volumes:
 
 | Concept | Purpose |
 |---|---|
-| `services` | Har ek independent container definition |
-| `build` vs `image` | `build`: local Dockerfile se banao; `image`: existing registry image use karo (jaise `postgres`) |
-| `ports` | `host:container` mapping — host machine se access ke liye |
-| `volumes` (bind mount) | Host folder ko container mein mount karna — code change turant reflect (hot-reload) |
-| `volumes` (named, top-level) | Persistent data storage — container restart/delete hone par bhi data bacha rahe (jaise DB data) |
-| `depends_on` | Startup order define karta hai (lekin readiness guarantee nahi — DB "started" ho sakta hai but "ready to accept connections" nahi) |
-| `environment` | Environment variables inject karna, config code se separate rakhna |
-| Networking | Default: sab services ek shared network par hote hain, service-name se reachable |
+| `services` | Each entry is an independent container definition |
+| `build` vs `image` | `build`: build from a local Dockerfile; `image`: use an existing registry image (e.g. `postgres`) |
+| `ports` | `host:container` mapping — for access from the host machine |
+| `volumes` (bind mount) | Mounts a host folder into the container — code changes reflect instantly (hot-reload) |
+| `volumes` (named, top-level) | Persistent data storage — survives container restart/deletion (e.g. DB data) |
+| `depends_on` | Defines startup order (but doesn't guarantee readiness — a DB might be "started" but not yet "ready to accept connections") |
+| `environment` | Injects environment variables, keeping config separate from code |
+| Networking | By default, all services share a network and are reachable by service name |
 
-**Bind mount trick for node_modules**: `./frontend:/app` poora host folder mount karta hai, lekin `/app/node_modules` ek separate anonymous volume rakhta hai — isse host ka (potentially incompatible OS-specific) `node_modules` container ke `node_modules` ko overwrite nahi karta.
+**Bind mount trick for node_modules**: `./frontend:/app` mounts the entire host folder, but `/app/node_modules` is kept as a separate anonymous volume — this prevents the host's (potentially OS-incompatible) `node_modules` from overwriting the container's.
 
 ---
 
 ## 3. Developer Mindset (Day-to-day usage)
 
-- `docker-compose up -d` — detached mode mein poora stack chalao.
-- `docker-compose logs -f <service-name>` — specific service ke logs live dekho.
-- `docker-compose down` — sab containers stop + remove (data volumes by default bache rehte hain, `-v` flag se wo bhi delete hote hain).
-- `docker-compose exec <service> sh` — running container ke andar jaake directly debug karo.
-- Code change karo → agar bind mount + framework ka hot-reload (Vite, nodemon, Angular CLI) set hai, container restart ki zaroorat nahi, changes live reflect honge.
-- `depends_on` sirf start **order** guarantee karta hai, service **readiness** nahi — agar backend DB se turant connect try karta hai aur DB abhi accept nahi kar raha, retry-logic ya `healthcheck` + `condition: service_healthy` add karna padta hai.
+- `docker-compose up -d` — run the whole stack in detached mode.
+- `docker-compose logs -f <service-name>` — watch a specific service's logs live.
+- `docker-compose down` — stop + remove all containers (data volumes survive by default, `-v` flag removes those too).
+- `docker-compose exec <service> sh` — go inside a running container to debug directly.
+- Make a code change → if bind mount + the framework's hot-reload (Vite, nodemon, Angular CLI) is set up, no container restart needed, changes reflect live.
+- `depends_on` only guarantees start **order**, not service **readiness** — if the backend tries to connect to the DB immediately and the DB isn't ready to accept connections yet, you need retry-logic or a `healthcheck` + `condition: service_healthy`.
 
 ---
 
 ## 4. Interview-Prep Angle
 
-- **"Multiple services ko local mein kaise run karte ho consistently?"** — `docker-compose.yml` se poora stack ek command mein spin up karna, "works on my machine" problem solve karna.
-- **"Compose mein services ek doosre se kaise communicate karte hain?"** — shared Docker network + service-name-based DNS resolution, `localhost` nahi.
-- **"`depends_on` kya guarantee karta hai, kya nahi?"** — sirf container start order, service readiness nahi; readiness ke liye healthchecks chahiye.
-- **"Development aur production ke liye same Dockerfile use karoge?"** — generally nahi; dev mein bind-mount + hot-reload chahiye hota hai (fast feedback), prod mein multi-stage optimized immutable image (no mounts, no live-editing).
-- **"Named volume aur bind mount mein difference?"** — bind mount host filesystem ka specific path map karta hai (dev ke liye, live sync); named volume Docker-managed storage hai, persistence ke liye (DB data), host path irrelevant.
+- **"How do you run multiple services locally in a consistent way?"** — spin up the whole stack with one command via `docker-compose.yml`, solving the "works on my machine" problem.
+- **"How do services communicate with each other in Compose?"** — shared Docker network + service-name-based DNS resolution, not `localhost`.
+- **"What does `depends_on` guarantee, and what doesn't it?"** — only container start order, not service readiness; readiness needs healthchecks.
+- **"Would you use the same Dockerfile for development and production?"** — generally no; dev needs bind-mount + hot-reload (fast feedback), prod needs a multi-stage optimized immutable image (no mounts, no live-editing).
+- **"What's the difference between a named volume and a bind mount?"** — a bind mount maps a specific host filesystem path (for dev, live sync); a named volume is Docker-managed storage, for persistence (DB data), host path irrelevant.
 
 ---
 
 ## 5. Common Mistakes
 
-- `depends_on` ko readiness guarantee samajh lena — DB abhi start hi hua hota hai, backend fail ho jaata hai connection attempt mein.
-- Production mein bhi `docker-compose.yml` ka wahi dev-config use kar lena (bind mounts, exposed DB ports directly) — security aur performance dono risk.
-- `node_modules` ko host se bind mount mein include kar dena without anonymous volume trick — native dependencies (jaise `node-sass`, `bcrypt`) OS mismatch ki wajah se crash karte hain.
-- Secrets (DB passwords, API keys) ko `docker-compose.yml` mein directly hardcode karke commit kar dena — `.env` file use karo aur usko `.gitignore` mein rakho.
-- Named volumes ko `docker-compose down -v` se accidentally delete kar dena — production/important local data loss ho sakta hai agar bina soche `-v` flag use kiya.
-- Har service ke liye alag `docker-compose up` chalane ki koshish karna instead of ek hi file mein define karke ek command se poora stack manage karna.
+- Assuming `depends_on` guarantees readiness — the DB has literally just started, and the backend fails on its connection attempt.
+- Using the same dev `docker-compose.yml` in production too (bind mounts, directly exposed DB ports) — security and performance risk.
+- Including `node_modules` in a bind mount without the anonymous-volume trick — native dependencies (like `node-sass`, `bcrypt`) crash due to OS mismatch.
+- Hardcoding secrets (DB passwords, API keys) directly in `docker-compose.yml` and committing it — use a `.env` file and `.gitignore` it.
+- Accidentally deleting named volumes with `docker-compose down -v` — can cause production/important local data loss if the `-v` flag is used without checking.
+- Trying to run a separate `docker-compose up` per service instead of defining everything in one file and managing the whole stack with one command.

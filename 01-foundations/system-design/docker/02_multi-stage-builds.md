@@ -2,17 +2,17 @@
 
 Location: `01-foundations/system-design/docker/multi-stage-builds.md`
 
-`dockerfile-basics.md` mein multi-stage build ka concept touch kiya tha — ye file usi ko deeply cover karti hai: kyun zaroori hai, kaise structure karte hain, aur frontend context mein specifically kaise use hota hai.
+`dockerfile-basics.md` touched on the multi-stage build concept — this file covers it in depth: why it matters, how to structure it, and how it's specifically used in a frontend context.
 
 ---
 
 ## 1. Mental Model
 
-Bina multi-stage build ke, ek hi Dockerfile mein build tools (compiler, npm, dev-dependencies) aur runtime dono cheezein ek hi image mein reh jaati hain — final image bloated aur insecure hota hai.
+Without multi-stage builds, build tools (compilers, npm, dev-dependencies) and the runtime both end up in the same final image — bloated and less secure.
 
-**Multi-stage build ka core idea**: Multiple `FROM` statements ek hi Dockerfile mein use karo, har ek apna alag "stage" hai. Sirf jo cheez tumhe chahiye wo ek stage se doosre stage mein `COPY --from=<stage>` se le aao — baaki sab discard ho jaata hai.
+**Core idea of multi-stage builds**: Use multiple `FROM` statements in one Dockerfile, each its own "stage." Only bring over what you actually need from one stage to another via `COPY --from=<stage>` — everything else gets discarded.
 
-**Analogy**: Socho ek kitchen (build stage) jahan poora mess hota hai — raw ingredients, tools, prep waste — aur ek plate (final stage) jo customer ko serve hoti hai. Customer ko sirf plate dikhti hai, kitchen ka mess nahi.
+**Analogy**: Think of a kitchen (build stage) that's a mess — raw ingredients, tools, prep waste — and a plate (final stage) that's served to the customer. The customer only sees the plate, not the kitchen's mess.
 
 ---
 
@@ -36,49 +36,49 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-Final image mein Node.js runtime, `node_modules`, ya source code — kuch bhi nahi hai. Sirf static HTML/CSS/JS files aur nginx.
+The final image has no Node.js runtime, `node_modules`, or source code — just static HTML/CSS/JS files and nginx.
 
-**Named stages ka fayda:**
-- Stage ko naam do (`AS build`) taaki `COPY --from=build` readable rahe (index number, jaise `--from=0`, ke bajaye).
-- Multiple intermediate stages bhi ban sakte hain — jaise ek stage dependencies install kare, doosra test chalaye, teesra build kare, aur sirf final stage runtime ho.
+**Benefit of named stages:**
+- Name the stage (`AS build`) so `COPY --from=build` stays readable (instead of a numeric index like `--from=0`).
+- Multiple intermediate stages are also possible — e.g. one stage installs dependencies, another runs tests, another builds, and only the final stage is the runtime.
 
 **Build-time targets:**
 ```bash
 docker build --target build -t myapp:debug .
 ```
-Isse tum sirf ek specific stage tak build kar sakte ho — debugging ke liye useful (agar build stage mein issue hai, poora pipeline nahi chalana padta).
+This lets you build only up to a specific stage — useful for debugging (if there's an issue in the build stage, you don't need to run the entire pipeline).
 
-**Size impact (real numbers ka sense):**
+**Size impact (a sense of real numbers):**
 - Single-stage (Node + source + node_modules + build output): often 900MB-1.2GB+
 - Multi-stage (nginx + static files only): often 20-40MB
 
-Ye difference deployment speed, registry storage cost, aur container startup time — teeno ko improve karta hai.
+This difference improves deployment speed, registry storage cost, and container startup time — all three.
 
 ---
 
 ## 3. Developer Mindset (Day-to-day usage)
 
-- Jab bhi Dockerfile likho jisme "build karna" aur "run karna" alag steps hain (compile, transpile, bundle) — multi-stage socho by default, single-stage exception honi chahiye.
-- Build stage mein saara tooling free-hand use karo (dev-dependencies, compilers) — final stage mein sirf runtime-necessary cheezein copy karo.
-- Backend (Node.js API) ke liye bhi pattern applicable hai: build stage mein TypeScript compile karo, final stage mein sirf compiled JS + production `node_modules` (`npm ci --omit=dev`) copy karo.
-- Local development ke liye multi-stage build zaroori nahi — wahan `docker-compose` ke saath direct volume-mounted dev image better hai (hot-reload ke liye). Multi-stage mainly **production image** ke liye optimize karta hai.
+- Whenever you write a Dockerfile where "building" and "running" are separate steps (compile, transpile, bundle) — default to thinking multi-stage; single-stage should be the exception.
+- Freely use all tooling in the build stage (dev-dependencies, compilers) — copy only runtime-necessary things into the final stage.
+- The same pattern applies to backend (Node.js API) too: compile TypeScript in the build stage, copy only compiled JS + production `node_modules` (`npm ci --omit=dev`) into the final stage.
+- Multi-stage builds aren't necessary for local development — a directly volume-mounted dev image with `docker-compose` (for hot-reload) is better there. Multi-stage is mainly for optimizing the **production image**.
 
 ---
 
 ## 4. Interview-Prep Angle
 
-- **"Multi-stage build kya hai aur kyun use karte ho?"** — image size reduction, build tools ko production se separate rakhna, security surface kam karna.
-- **"Frontend app (React/Angular) ko Dockerize kaise karoge production ke liye?"** — ye exact two-stage pattern (build with node, serve with nginx) bata sakna high-signal answer hai.
-- **"Single-stage aur multi-stage mein trade-off kya hai?"** — multi-stage thoda zyada complex Dockerfile, but drastically chhota aur secure final image. Local dev mein simplicity ke liye single-stage/volume-mount bhi valid choice hai.
-- **"Kya ek Dockerfile mein 2 se zyada stages ho sakte hain?"** — haan, jitne chahiye utne; common pattern hai dependencies → test → build → runtime.
-- **"Build cache multi-stage mein kaise kaam karta hai?"** — har stage independently cache hoti hai; agar sirf final stage change ho (jaise nginx config), build stage re-run nahi hoga agar upar ke layers unchanged hain.
+- **"What is a multi-stage build and why use it?"** — image size reduction, keeping build tools separate from production, reducing security surface.
+- **"How would you Dockerize a frontend app (React/Angular) for production?"** — being able to describe this exact two-stage pattern (build with node, serve with nginx) is a high-signal answer.
+- **"What's the trade-off between single-stage and multi-stage?"** — multi-stage is a slightly more complex Dockerfile, but a drastically smaller and more secure final image. Single-stage/volume-mount is still valid for local dev simplicity.
+- **"Can a Dockerfile have more than 2 stages?"** — yes, as many as needed; a common pattern is dependencies → test → build → runtime.
+- **"How does build cache work with multi-stage?"** — each stage caches independently; if only the final stage changes (e.g. nginx config), the build stage won't re-run if the layers above it are unchanged.
 
 ---
 
 ## 5. Common Mistakes
 
-- Poora `node_modules` (including devDependencies) final stage mein copy kar dena — multi-stage ka fayda hi khatam ho jaata hai.
-- Build stage ka naam na dena aur numeric index (`--from=0`) use karna — Dockerfile mein stages reorder karne par silently break ho sakta hai.
-- Final stage mein bhi `node:20-alpine` jaisा heavy base rakhna jab actual zaroorat sirf static file serving ki ho (nginx/caddy se kaam chal sakta hai) — unnecessary bloat.
-- Environment-specific build args (API URLs, etc.) ko build stage mein hardcode karna — runtime config injection (env vars ya config file mounted at container start) better pattern hai for the same image to work across environments.
-- Multi-stage build ko local development workflow mein bhi force karna — dev mein ye slow feedback loop create karta hai; dev aur prod Dockerfile/strategy alag rakhna often better hai.
+- Copying the entire `node_modules` (including devDependencies) into the final stage — defeats the whole purpose of multi-stage.
+- Not naming build stages and using a numeric index (`--from=0`) instead — can silently break if stages are reordered in the Dockerfile.
+- Keeping a heavy base like `node:20-alpine` in the final stage when the actual need is just static file serving (nginx/caddy would do) — unnecessary bloat.
+- Hardcoding environment-specific build args (API URLs, etc.) in the build stage — runtime config injection (env vars or a config file mounted at container start) is the better pattern for the same image to work across environments.
+- Forcing multi-stage builds into the local development workflow too — creates a slow feedback loop in dev; it's often better to keep dev and prod Dockerfile/strategy separate.

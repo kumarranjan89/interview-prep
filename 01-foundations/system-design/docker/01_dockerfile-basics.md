@@ -1,76 +1,90 @@
-# Docker
+# Dockerfile Basics
 
-Location: `01-foundations/system-design/docker/`
+Location: `01-foundations/system-design/docker/dockerfile-basics.md`
 
-Docker samajhne ka goal yahan sirf commands ratna nahi hai — goal hai ye samajhna ki "code ek machine se doosri machine tak consistently kaise pahunchta hai," jo ki system-design ka hi ek execution-layer extension hai.
+This file covers the core Dockerfile instructions and, more importantly, the "why" behind each one — the emphasis is less on syntax and more on how each instruction affects the image build process.
 
 ---
 
 ## 1. Mental Model
 
-Docker ko samajhne ka sabse simple tareeka: **"Container = Process + apna bubble of filesystem, isolated from host."**
+A Dockerfile is a **step-by-step recipe** that Docker uses to build an image. Each line creates a new **layer**, and layers are **cached top-to-bottom**.
 
-- **VM vs Container**: VM apna poora OS kernel carry karta hai (heavy, minutes mein boot hota hai). Container host ke kernel ko share karta hai, sirf apna filesystem/dependencies carry karta hai (light, seconds mein boot hota hai).
-- **Image vs Container**: Image = read-only blueprint (class). Container = running instance of that blueprint (object). Ek image se multiple containers spin ho sakte hain.
-- **Layers**: Har `Dockerfile` instruction (`RUN`, `COPY`, etc.) ek naya layer banata hai. Layers cache hote hain — isliye Dockerfile mein instruction order matter karta hai (jo cheez kam badalti hai wo upar rakho, jaise `package.json` copy + `npm install`, phir source code copy).
-- **Isolation via Linux primitives**: Docker koi jaadu nahi karta — namespaces (process/network/filesystem isolation) aur cgroups (resource limits) ka use karta hai, jo Linux kernel already provide karta hai.
+- If a layer changes, **all layers below it get rebuilt** — the ones above don't.
+- So put whatever **changes the least** (dependencies) **near the top**, and whatever **changes most often** (source code) **near the bottom**.
 
-**One-line mindset**: Docker packaging tool hai, virtualization tool nahi. Ye "same environment everywhere" guarantee deta hai, "separate OS everywhere" nahi.
+```dockerfile
+FROM node:20-alpine       # base image — starting point
+WORKDIR /app              # sets working directory inside container
+COPY package*.json ./     # copy only dependency manifests first
+RUN npm install           # install deps — cached unless package.json changes
+COPY . .                  # copy rest of source code
+CMD ["npm", "start"]      # default command when container runs
+```
 
 ---
 
 ## 2. Architecture Mindset
 
-Jab tum Docker ko system design ke lens se dekhte ho, ye questions relevant ho jaate hain:
+Key instructions and their purpose:
 
-- **Image size discipline**: Multi-stage builds use karo — build stage mein saara tooling ho, final stage mein sirf runtime artifact + minimal base image (`alpine`, `distroless`). Isse attack surface aur deploy time dono kam hote hain.
-- **Statelessness**: Container ko stateless treat karo. Persistent data (DB, uploads) ko named volumes ya bind mounts mein rakho — container delete hone par data nahi udna chahiye.
-- **One process per container (mostly)**: Ek container = ek concern (frontend, backend, DB alag-alag containers). Isse scaling, restart, aur debugging independent ho jaate hain.
-- **Networking**: `docker-compose` mein services apne service-name se ek doosre ko resolve karte hain (built-in DNS), isliye `localhost` ke bajaye service name use hota hai container-to-container communication mein.
-- **Local dev parity**: `docker-compose.yml` se poora stack (frontend + backend + DB + cache) ek command mein spin ho jaana chahiye — "works on my machine" problem yahi solve karta hai.
+| Instruction | Purpose | Notes |
+|---|---|---|
+| `FROM` | Selects the base image | Smaller is better (`alpine`, `slim` variants) |
+| `WORKDIR` | Sets the working directory inside the container | Like `cd`, but declarative |
+| `COPY` / `ADD` | Copies files from host into the container | Prefer `COPY`; `ADD`'s extra features (auto-extract, URL fetch) are rarely needed |
+| `RUN` | Runs a build-time command | Creates a new layer, baked permanently into the image |
+| `CMD` | Default command when the container starts | Can be overridden at runtime (`docker run <image> <other-cmd>`) |
+| `ENTRYPOINT` | Fixed executable that always runs | `CMD` becomes its arguments when both are used |
+| `EXPOSE` | Documents the intended port | Actual port mapping happens via `docker run -p` |
+| `ENV` | Sets an environment variable (build + runtime) | Don't put secrets here — they get baked into the image |
+| `ARG` | Build-time-only variable | Different from `ENV` — doesn't persist to runtime |
+
+**Multi-stage build** (production-grade pattern):
+
+```dockerfile
+# Stage 1: build
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: serve (only final artifact copied over)
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+```
+
+The final image has no Node.js, dev-dependencies, or source code — just the built static files. This drastically reduces image size.
 
 ---
 
 ## 3. Developer Mindset (Day-to-day usage)
 
-- Dockerfile likhte waqt sabse pehle socho: "cache kahan invalidate hoga?" — dependency install steps ko source-code copy se pehle rakho.
-- `.dockerignore` file zaroor banao (`node_modules`, `.git`, `dist` exclude karo) — warna build context bloated ho jaata hai aur build slow.
-- Debugging ke liye `docker exec -it <container> sh` se andar ja kar directly inspect karo, guesswork mat karo.
-- `docker-compose up -d` se detached mode mein chalao local dev ke liye, logs `docker-compose logs -f <service>` se dekho.
-- Environment-specific config (`.env` files) ko image ke andar bake mat karo — runtime par inject karo (12-factor app principle).
+- While writing a Dockerfile, always ask: "is layer caching actually working here, or am I forcing a full rebuild every time?"
+- Never reverse the order: `COPY package*.json ./` → `RUN npm install` → `COPY . .`.
+- Always create a `.dockerignore` file (`node_modules`, `.git`, `dist`, `.env`) — keeps the build context small and prevents secrets from accidentally ending up in the image.
+- Don't confuse `CMD` vs `ENTRYPOINT`: if the container has one fixed purpose (running a specific binary), use `ENTRYPOINT`. If you want flexibility (a default that's still override-able), use `CMD`.
+- Always tag a version when building — `docker build -t myapp:v1 .` — don't rely on `latest`.
 
 ---
 
 ## 4. Interview-Prep Angle
 
-Common areas jo principal/staff-level interviews mein touch hote hain:
-
-- **"Docker vs VM"** — clearly differentiate kernel-sharing vs full OS virtualization, aur trade-offs (density, boot time, isolation strength).
-- **"How would you reduce image size?"** — multi-stage builds, smaller base images, layer caching, removing build-time dependencies from final image.
-- **"How does container networking work?"** — bridge network (default), host network, custom networks, service discovery via DNS in compose/orchestration.
-- **"How do you handle secrets/config?"** — env vars at runtime, secret managers (not baked into image, not committed to Dockerfile).
-- **"What happens to data when a container restarts/dies?"** — ephemeral by default; volumes needed for persistence. Be ready to explain volume types (named vs bind mount).
-- **"Why use Docker in a microservices/frontend context?"** — consistent build/runtime environment across dev/staging/prod, easier onboarding, isolation between services with different dependency versions.
-
-Frontend-specific angle worth mentioning: multi-stage build jahan build stage mein `npm run build` chale (React/Angular), aur final stage mein sirf static output ek lightweight nginx image mein serve ho — ye ek concrete, high-signal example hai discussion mein.
+- **"How does layer caching work, and how does it affect build speed?"** — clearly explain instruction order + cache invalidation, with an example.
+- **"Why use multi-stage builds?"** — removing build-time dependencies from the final image, reducing both size and attack surface.
+- **"Difference between `CMD` and `ENTRYPOINT`?"** — cover both override-ability and intended use case.
+- **"Is it safe to store secrets in `ENV`?"** — no, because `ENV` values get baked into the image and are visible via `docker inspect`/history; inject secrets at runtime instead (orchestrator secrets, a `.gitignore`d `--env-file`, or a secret manager).
+- **"How would you reduce the size of an existing Dockerfile's image?"** — smaller base image, multi-stage build, combining unnecessary layers (`&&`-chaining `RUN` commands where sensible), tightening `.dockerignore`.
 
 ---
 
 ## 5. Common Mistakes
 
-- Ek hi container mein multiple unrelated processes chalana (frontend + backend + DB sab ek image mein) — debugging aur scaling dono mushkil ho jaate hain.
-- `node_modules` ko host se container mein copy karna instead of container ke andar `npm install` chalane dena — platform mismatch (especially native dependencies) issues create karta hai.
-- `.dockerignore` bhool jaana — build context bloat aur accidental secrets/files image mein chale jaana.
-- `latest` tag pe depend karna production mein — reproducibility break hoti hai; hamesha specific version tag pin karo.
-- Container ko VM jaisa treat karna (SSH karke manually andar changes karna, phir wahi image reuse karna) — container immutable hona chahiye, changes Dockerfile mein hone chahiye.
-- Root user se container run karna — security best practice hai non-root user specify karna Dockerfile mein.
-
----
-
-## Suggested Sub-topics (files to add here as this grows)
-
-- `dockerfile-basics.md`
-- `multi-stage-builds.md`
-- `docker-compose-for-local-dev.md`
-- `networking-and-volumes.md`
-- `frontend-container-patterns.md` (Angular/React build → nginx serve pattern)
+- Copying source code before dependencies — invalidates the cache on every build.
+- No `.dockerignore` — `node_modules` or `.git` ends up in the entire build context, slowing builds and bloating the image.
+- Splitting `RUN apt-get update` into a separate `RUN` line from `apt-get install` — layer caching can use a stale package list. Always chain: `RUN apt-get update && apt-get install -y <pkg>` in one line.
+- Baking secrets (API keys, passwords) into the image via `ENV` or `ARG` — they remain permanently visible in image history.
+- Writing a separate `RUN` instruction for every small thing — adds unnecessary layers (modern Docker optimizes this fairly well, but chaining is still better for readability and size).
+- Relying on the `latest` tag in production — breaks reproducibility; tomorrow's build could differ from today's.

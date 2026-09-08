@@ -2,20 +2,20 @@
 
 Location: `01-foundations/system-design/docker/frontend-container-patterns.md`
 
-Ye docker folder ka aakhri planned file hai — sab pehle wale concepts (Dockerfile, multi-stage builds, compose, networking/volumes) ko specifically **frontend apps (React/Angular)** ke context mein consolidate karta hai.
+This is the last planned file in the docker folder — it consolidates all the earlier concepts (Dockerfile, multi-stage builds, compose, networking/volumes) specifically in the context of **frontend apps (React/Angular)**.
 
 ---
 
 ## 1. Mental Model
 
-Frontend apps do fundamentally different "runtime needs" ke saath aate hain:
+Frontend apps come with two fundamentally different "runtime needs":
 
-- **Build-time**: Node.js chahiye — transpile, bundle, minify (`npm run build`).
-- **Run-time**: Sirf static files serve karne hain — Node.js ki zaroorat hi nahi.
+- **Build-time**: Needs Node.js — transpile, bundle, minify (`npm run build`).
+- **Run-time**: Only needs to serve static files — no Node.js required at all.
 
-Ye mismatch hi hai jo multi-stage build ko frontend ke liye **especially** important banata hai — build tool aur runtime tool alag hain, isliye final image mein sirf runtime tool (nginx) rakhna sabse natural fit hai.
+This mismatch is exactly why multi-stage builds are **especially** important for frontend — the build tool and the runtime tool are different, so keeping only the runtime tool (nginx) in the final image is the most natural fit.
 
-**Key distinction**: SPA (React/Angular, client-side rendered) vs SSR app (Next.js, Angular Universal) — dono ka container pattern different hota hai, kyunki SSR app ko actual Node.js process runtime mein bhi chahiye hota hai.
+**Key distinction**: SPA (React/Angular, client-side rendered) vs SSR app (Next.js, Angular Universal) — each needs a different container pattern, because an SSR app also needs an actual Node.js process at runtime.
 
 ---
 
@@ -38,7 +38,7 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-**Custom `nginx.conf` zaroori hai SPA routing ke liye** (client-side routes jaise `/dashboard` direct-hit hone par 404 na aaye):
+**A custom `nginx.conf` is necessary for SPA routing** (so client-side routes like `/dashboard` don't 404 on a direct hit):
 
 ```nginx
 server {
@@ -52,9 +52,9 @@ server {
 }
 ```
 
-`try_files ... /index.html` fallback ensure karta hai ki koi bhi unknown path `index.html` serve kare, jahan se React Router/Angular Router client-side handle kar le.
+The `try_files ... /index.html` fallback ensures any unknown path serves `index.html`, from where React Router/Angular Router can handle it client-side.
 
-### Pattern B — SSR app (Next.js, Angular Universal — Node.js runtime chahiye)
+### Pattern B — SSR app (Next.js, Angular Universal — needs Node.js runtime)
 
 ```dockerfile
 FROM node:20-alpine AS build
@@ -74,47 +74,47 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-Yahan final stage mein bhi Node.js rehta hai — kyunki SSR ka matlab hi hai har request par server-side render hona.
+Here Node.js stays in the final stage too — because SSR means rendering server-side on every request.
 
 ### Runtime config injection (environment-specific API URLs)
 
-Frontend build-time par hi environment variables ko bundle mein bake kar deta hai (jaise `REACT_APP_API_URL`) — jo multi-environment deployment (same image, different config) ke against jaata hai. Solutions:
+A frontend build bakes environment variables into the bundle at build-time (e.g. `REACT_APP_API_URL`) — which goes against the "same artifact everywhere" principle for multi-environment deployment. Solutions:
 
-- **Option 1**: Alag build per environment (simplest, but "same artifact everywhere" principle todta hai).
-- **Option 2**: Runtime config file — container start hone par ek script `env.js` ya `config.json` generate kare actual environment variables se, jo app runtime par fetch kare (build-time bake nahi).
+- **Option 1**: A separate build per environment (simplest, but breaks the "same artifact everywhere" principle).
+- **Option 2**: Runtime config file — a script generates `env.js` or `config.json` from actual environment variables when the container starts, and the app fetches it at runtime (not baked at build-time).
 
 ```dockerfile
-# entrypoint.sh runtime par config.json generate karta hai container start hote hi
+# entrypoint.sh generates config.json at runtime, when the container starts
 COPY entrypoint.sh /docker-entrypoint.d/40-generate-config.sh
 ```
 
-Ye pattern "one image, many environments" ko truly enable karta hai — frontend ke liye ye subtlety often interview mein miss ki jaati hai.
+This pattern truly enables "one image, many environments" — a subtlety that's often missed for frontend in interviews.
 
 ---
 
 ## 3. Developer Mindset (Day-to-day usage)
 
-- Local dev ke liye multi-stage/nginx pattern use mat karo — waha `docker-compose` + bind mount + dev-server (`npm start` / `ng serve`) with hot-reload better hai.
-- Production build test karne ke liye locally bhi `docker build` + `docker run` chala kar verify karo ki static files sahi serve ho rahe hain, routes 404 nahi de rahe.
-- SPA vs SSR decide karte waqt container strategy pehle se soch lo — ye architecture decision hai, deployment ke time retrofit karna costly hota hai.
-- `nginx.conf` ko version control mein rakho jaise koi bhi source file — ye deployment behavior directly control karta hai.
+- Don't use the multi-stage/nginx pattern for local dev — there, `docker-compose` + bind mount + dev-server (`npm start` / `ng serve`) with hot-reload is better.
+- To test a production build, run `docker build` + `docker run` locally too, and verify static files serve correctly and routes don't 404.
+- Decide SPA vs SSR container strategy upfront — this is an architecture decision, expensive to retrofit at deployment time.
+- Keep `nginx.conf` in version control like any other source file — it directly controls deployment behavior.
 
 ---
 
 ## 4. Interview-Prep Angle
 
-- **"React/Angular app ko production ke liye Dockerize kaise karoge?"** — multi-stage build (Node for build, nginx for serve) — ye single sabse common frontend Docker question hai.
-- **"SPA routing container mein kaam kyun nahi karta by default?"** — nginx default config sirf actual files ko match karta hai; client-side routes ke liye `try_files` fallback to `index.html` chahiye.
-- **"Same Docker image ko multiple environments (dev/staging/prod) mein kaise use karoge jab API URL alag ho?"** — runtime config injection pattern (env.js/config.json generate at container start), build-time baking nahi.
-- **"SSR app ka container SPA se kaise different hoga?"** — SSR ko runtime Node.js process chahiye (request-time rendering), SPA ko sirf static file server chahiye.
-- **"Static assets ke liye caching strategy kya hoga container/CDN ke saath?"** — hashed filenames (content-based) + long cache headers for assets, short/no-cache for `index.html` (taaki naya deployment turant reflect ho).
+- **"How would you Dockerize a React/Angular app for production?"** — multi-stage build (Node for build, nginx for serve) — this is the single most common frontend Docker question.
+- **"Why doesn't SPA routing work in a container by default?"** — nginx's default config only matches actual files; client-side routes need a `try_files` fallback to `index.html`.
+- **"How would you use the same Docker image across multiple environments (dev/staging/prod) when the API URL differs?"** — runtime config injection pattern (generate env.js/config.json at container start), not build-time baking.
+- **"How is an SSR app's container different from an SPA's?"** — SSR needs a runtime Node.js process (request-time rendering), SPA just needs a static file server.
+- **"What's the caching strategy for static assets with a container/CDN?"** — hashed filenames (content-based) + long cache headers for assets, short/no-cache for `index.html` (so a new deployment reflects immediately).
 
 ---
 
 ## 5. Common Mistakes
 
-- SPA ko Dockerize karte waqt nginx config customize na karna — direct routes (`/dashboard` refresh) production mein 404 dene lagte hain.
-- API URL ko build-time env var se bake kar dena, phir realize karna ki staging/prod ke liye alag images banani pad rahi hain — "one image, many environments" principle break ho jaata hai.
-- SSR app ko SPA ki tarah treat karna — final image se Node.js hata dena, jabki runtime rendering ke liye zaroori tha.
-- Cache headers galat set karna — `index.html` ko bhi long-cache kar dena, jisse naya deployment users ko turant nahi dikhta.
-- Dev workflow mein bhi production multi-stage build use karne ki koshish karna — feedback loop slow ho jaata hai, jabki dev mein sirf `npm start`/`ng serve` + volume mount chahiye tha.
+- Not customizing the nginx config while Dockerizing an SPA — direct routes (`/dashboard` refresh) start 404-ing in production.
+- Baking the API URL into a build-time env var, then realizing separate images need to be built for staging/prod — breaks the "one image, many environments" principle.
+- Treating an SSR app like an SPA — removing Node.js from the final image when it was actually needed for runtime rendering.
+- Setting cache headers wrong — long-caching `index.html` too, so users don't see a new deployment immediately.
+- Trying to use the production multi-stage build in the dev workflow too — slows down the feedback loop, when dev really just needed `npm start`/`ng serve` + volume mount.
